@@ -1,5 +1,5 @@
 /*jshint sub:true*/
-
+//nothing
 /**
  * Copyright (c) 2015 Metropolitan Transportation Authority
  *
@@ -18,7 +18,14 @@
  * @authors https://github.com/camsys/onebusaway-nyc-atstop/graphs/contributors
  */
 
-angular.module('atstop', ['ionic', 'atstop.controllers', 'atstop.services', 'atstop.directives', 'leaflet-directive',
+angular.module('atstop', [
+ 'atstop.about.controller','atstop.atstop.controller',
+ 'atstop.favorites.controller', 'atstop.gohome.controller', 'atstop.nearby.controller', 
+ 'atstop.route.controller', 'atstop.search.controller', 
+ 'atstop.datetime.service', 
+ 'atstop.favorites.service', 'atstop.geolocation.service', 'atstop.route.service',
+  'atstop.search.service', 'atstop.vehicleMonitoring.service',
+ 'atstop.services', 'atstop.directives', 'leaflet-directive','ionic',
     'ngCordova', 'angular-cache', 'angular-inview', 'timer', 'angular-svg-round-progress', 'ngIOS9UIWebViewPatch', 'debounce'])
 
 // global timeout variable for HTTP requests
