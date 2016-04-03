@@ -238,6 +238,7 @@ angular.module('atstop.nearby.controller', ['configuration', 'filters'])
                     maximumAge: 0
                 }).then(
                     function(position) {
+                        $log.debug(position);
                         $scope.loading = false;
                         $timeout.cancel(timeout);
                         $scope.data.notifications = "";
@@ -245,6 +246,7 @@ angular.module('atstop.nearby.controller', ['configuration', 'filters'])
                         getNearbyStopsAndRoutes(position.coords.latitude, position.coords.longitude);
                     },
                     function(error) {
+                        $log.debug(error);
                         $scope.data.notifications = "Pull to refresh.";
                         $ionicLoading.hide();
                         $timeout.cancel(timeout);
@@ -348,6 +350,9 @@ angular.module('atstop.nearby.controller', ['configuration', 'filters'])
                     scrollWheelZoom: true,
                     key: MAPBOX_KEY,
                     zoomControl: false
+                },
+                options: {
+                    reuseTiles: true,
                 },
                 markers: {},
                 paths: {}
@@ -480,7 +485,6 @@ angular.module('atstop.nearby.controller', ['configuration', 'filters'])
 
             // don't bother if user has chosen a route to view
             if (!$scope.data.inRouteView) {
-                $scope.eventDetected = "Drag";
 
                 leafletData.getMap().then(function (map) {
                     // $log.debug('moving to', map.getCenter().lat, map.getCenter().lng);

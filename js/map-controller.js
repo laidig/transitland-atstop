@@ -6,8 +6,8 @@ angular.module('atstop.map.controller', ['configuration', 'filters'])
  * @description
  * Controller for showing a full route on a Map
  */
-.controller('MapCtrl', ['$log', 'MapService', 'FavoritesService', '$scope', '$location', '$stateParams', '$timeout', 'leafletData', '$filter', '$q', '$interval', 'MAPBOX_KEY', 'MAP_TILES', 'MAP_ATTRS',
-    function($log, MapService, FavoritesService, $scope, $location, $stateParams, $timeout, leafletData, $filter, $q, $interval, MAPBOX_KEY, MAP_TILES, MAP_ATTRS) {
+.controller('MapCtrl', ['$log', 'MapService', 'FavoritesService', '$scope', '$location', '$stateParams', '$timeout', 'leafletData','leafletMapEvents', '$filter', '$q', '$interval', 'MAPBOX_KEY', 'MAP_TILES', 'MAP_ATTRS',
+    function($log, MapService, FavoritesService, $scope, $location, $stateParams, $timeout, leafletData, leafletMapEvents, $filter, $q, $interval, MAPBOX_KEY, MAP_TILES, MAP_ATTRS) {
         $scope.markers = {};
         $scope.paths = {};
         $scope.url = "atstop";
@@ -38,7 +38,7 @@ angular.module('atstop.map.controller', ['configuration', 'filters'])
 
             $interval.cancel($scope.reloadTimeout);
             $scope.reloadTimeout = $interval($scope.refresh, 35000);
-            showBusAndStopMarkers($stateParams.routeId, $stateParams.stopId);
+            showBusAndStopMarkers($stateParams.routeId, $stateParams.stopId, false);
         };
 
         var showRoutePolylines = function(route) {
@@ -61,30 +61,35 @@ angular.module('atstop.map.controller', ['configuration', 'filters'])
             });
         };
 
-        var showBusAndStopMarkers = function(route, stop) {
+        var showBusAndStopMarkers = function(route, stop, recenter) {
+            //default to not recenter.
+            recenter = recenter !== false;
+
             //start countdown on markers refresh
             $scope.$broadcast('timer-set-countdown', 35);
             $scope.$broadcast('timer-start');
             $scope.markers = {};
 
             MapService.getBusMarkers(route).then(function(res) {
-                $log.debug(res);
                 angular.extend($scope.markers, res);
             });
             MapService.getStopMarkers(route, stop).then(function(res) {
-                $log.debug(res);
                 angular.extend($scope.markers, res);
 
                 //set zoom around current stop
-                angular.forEach($scope.markers, function(val, key) {
-                    if (val.layer == 'currentStop') {
-                        leafletData.getMap().then(function(map) {
-                            map.setView(val, 15, {
-                                animate: true
+                if (recenter) {
+                    angular.forEach($scope.markers, function (val, key) {
+                        if (val.layer == 'currentStop') {
+                            leafletData.getMap().then(function (map) {
+
+                                map.setView(val, 15, {
+                                    animate: true
+                                });
+
                             });
-                        });
-                    }
-                });
+                        }
+                    });
+                }
             });
         };
 
@@ -93,7 +98,7 @@ angular.module('atstop.map.controller', ['configuration', 'filters'])
             angular.extend($scope, {
                 events: {
                     markers: {
-                        enable: ['click'],
+                        enable: ['click', 'zoomstart', 'zoomend'],
                         logic: 'emit'
                     }
                 },
@@ -146,6 +151,7 @@ angular.module('atstop.map.controller', ['configuration', 'filters'])
             var content = '';
             var latLng = [];
             var popup = L.popup();
+            $log.debug('click');
 
             // if user clicked on a marker that's not a stop, it's a vehicle
             if ($filter('isUndefinedOrEmpty')(object.stopName)) {
@@ -175,6 +181,8 @@ angular.module('atstop.map.controller', ['configuration', 'filters'])
         * Makes a pretty big difference in performance.  
         */
         $scope.$on('leafletDirectiveMap.zoomend', function(event, args) {
+            $log.debug('zoom ' + args.leafletEvent.target._zoom);
+
             if (args.leafletEvent.target._zoom > 14 && !isLayerVisible('stops')) {
                 toggleLayer('stops');
             } else if (args.leafletEvent.target._zoom <= 14 && isLayerVisible('stops')) {
@@ -203,7 +211,7 @@ angular.module('atstop.map.controller', ['configuration', 'filters'])
             showRoutePolylines($stateParams.routeId);
             showBusAndStopMarkers($stateParams.routeId, $stateParams.stopId);
 
-            // if on initialization scale is greater than 14, don't show stops.
+            // if on initialization, scale is greater than 14, don't show stops.
             if ($scope.center.zoom > 14) {
                 toggleLayer('stops');
             }
