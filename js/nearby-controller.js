@@ -25,8 +25,8 @@ angular.module('atstop.nearby.controller', ['configuration', 'filters'])
  * @description
  * Controller that used for showing the nearby stops for specific location from geolocations.
  */
-.controller('NearbyStopsAndRoutesCtrl', ['$log', '$ionicLoading', 'MapService', '$stateParams', '$window', '$location', '$scope', 'GeolocationService','AtStopService', '$q', '$ionicPopup', '$cordovaGeolocation', '$filter', 'RouteService', 'leafletData', '$ionicScrollDelegate', '$timeout', '$interval', 'debounce', 'MAPBOX_KEY', 'MAP_TILES', 'MAP_ATTRS',
-    function($log, $ionicLoading, MapService, $stateParams, $window, $location, $scope, GeolocationService, AtStopService, $q, $ionicPopup, $cordovaGeolocation, $filter, RouteService, leafletData, $ionicScrollDelegate, $timeout, $interval, debounce, MAPBOX_KEY, MAP_TILES, MAP_ATTRS) {
+.controller('NearbyStopsAndRoutesCtrl', ['$log', '$ionicLoading', '$stateParams', '$window', '$location', '$scope', 'GeolocationService','AtStopService', '$q', '$ionicPopup', '$cordovaGeolocation', '$filter', 'leafletData', '$ionicScrollDelegate', '$timeout', '$interval',  'MAPBOX_KEY', 'MAP_TILES', 'MAP_ATTRS',
+    function($log, $ionicLoading, $stateParams, $window, $location, $scope, GeolocationService, AtStopService, $q, $ionicPopup, $cordovaGeolocation, $filter, leafletData, $ionicScrollDelegate, $timeout, $interval, MAPBOX_KEY, MAP_TILES, MAP_ATTRS) {
         $scope.markers = {};
         $scope.paths = {};
         $scope.url = "atstop";
@@ -175,15 +175,13 @@ angular.module('atstop.nearby.controller', ['configuration', 'filters'])
             if (showCurrLocation === undefined) {
                 showCurrLocation = true; 
             }
-
             GeolocationService.getStops(lat, lon).then(function(results) {
                 if (!angular.isUndefined(results) && results !== null && results.length > 0) {
-
                     //reset the list of stops we're interested in.
                     stopsInTimeout = [];
 
                     angular.forEach(results, function(stop) {
-                        stop['dist'] = MapService.getDistanceInM(lat, lon, stop['lat'], stop['lon']);
+                        stop['dist'] = getDistanceInM(lat, lon, stop['lat'], stop['lon']);
                     });
                     $scope.data.stops = results;
 
@@ -365,13 +363,11 @@ angular.module('atstop.nearby.controller', ['configuration', 'filters'])
 
         /**
          * when passed in a route, get and display polylines for that route
+         * does nothing for transitland
          * @param route
          */
         $scope.showRoutePolylines = function(route) {
             $scope.paths = {};
-            MapService.getRoutePolylines(route).then(function(res) {
-                $scope.paths = res;
-            });
         };
 
         var showBusMarkers = function(route) {
@@ -379,9 +375,6 @@ angular.module('atstop.nearby.controller', ['configuration', 'filters'])
                 map.closePopup();
             });
 
-            MapService.getBusMarkers(route).then(function(res) {
-                angular.extend($scope.markers, res);
-            });
         };
 
         /**
@@ -491,7 +484,7 @@ angular.module('atstop.nearby.controller', ['configuration', 'filters'])
                     var lat = map.getCenter().lat;
                     var lng = map.getCenter().lng;
 
-                    debounce(getNearbyStopsAndRoutes(lat, lng, false), 500);
+                    ionic.debounce(getNearbyStopsAndRoutes(lat, lng, false), 500);
                     $scope.lat = lat;
                     $scope.lon = lng;
 
@@ -570,6 +563,20 @@ angular.module('atstop.nearby.controller', ['configuration', 'filters'])
                 $interval.cancel($scope.reloadTimeout);
             }
         });
+        
+        var getDistanceInM = function(lat1, lon1, lat2, lon2) {
+            var R = 6371;
+            var dLat = deg2rad(lat2 - lat1);
+            var dLon = deg2rad(lon2 - lon1);
+            var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            var d = R * c * 1000;
+            return parseInt(d, 10);
+         };
+
+        var deg2rad = function(deg) {
+            return deg * (Math.PI / 180);
+        };
 
 
         var isInt = function(value) {

@@ -5,10 +5,11 @@ angular.module('atstop.search.controller', ['configuration', 'filters'])
  * @description
  * Controller used for searching using autocomplete API.
  */
-.controller('SearchCtrl', ['$log','$rootScope', '$scope', '$location', 'SearchService', 'SearchHistoryService', '$filter', '$ionicLoading', 'RouteService', '$ionicPopup', '$ionicPlatform', 'SHOW_BRANDING', '$ionicTabsDelegate',
-    function($log, $rootScope, $scope, $location, SearchHistoryService, $filter, $ionicLoading, RouteService, $ionicPopup, $ionicPlatform, SearchService, SHOW_BRANDING,  $ionicTabsDelegate) {
+.controller('SearchCtrl', ['$log','$rootScope', '$scope', '$location', 'SearchService', 'SearchHistoryService', '$filter', '$ionicLoading', '$ionicPopup', '$ionicPlatform', 'SHOW_BRANDING', '$ionicTabsDelegate',
+    function($log, $rootScope, $scope, $location, SearchHistoryService, $filter, $ionicLoading, $ionicPopup, $ionicPlatform, SearchService, SHOW_BRANDING,  $ionicTabsDelegate) {
 
         $scope.go = function(path) {
+            console.log(path);
             $location.path(path);
         };
 
@@ -16,14 +17,9 @@ angular.module('atstop.search.controller', ['configuration', 'filters'])
             "results": [],
             "searchKey": '',
             "notifications": '',
-            exampleRoutes: [
-                "Bx1", "M15-SBS", "Q58"
-            ],
-            exampleStops: [
-                "200460", "308215", "502030"
-            ],
+          
             exampleIntersections: [
-                "Main Street & Kissena Bl"
+                "Transamerica Pyramid"
             ],
             "searches": [],
             "showSearches": true,

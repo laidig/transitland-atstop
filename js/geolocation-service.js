@@ -20,68 +20,52 @@
 
 angular.module('atstop.geolocation.service', ['ionic', 'configuration'])
 /**
- * Service for returning nearby routes and stops
- * Currently uses OBA discovery APIs
+ * Service for returning nearby stops
  */
-.factory('GeolocationService', function($log, $q, $http, httpTimeout, API_END_POINT, API_KEY) {
+.factory('GeolocationService', function($log, $q, $http, httpTimeout, API_END_POINT) {
+
         /**
-         * get routes near coordinates
-         * @param lat
-         * @param lon
-         * @returns {*}
+         * @typedef Stop
+         * @type Object
+         * @property {number} lat Latitude
+         * @property {number} lon Longitude
+         * @property {String} id Id of stop
+         * @property {String} name name of stop
          */
-    var getRoutes = function(lat, lon) {
-        var deferred = $q.defer();
-        var routes = {};
-
-        var responsePromise = $http.jsonp(API_END_POINT + "api/where/routes-for-location.json?callback=JSON_CALLBACK", {
-                params: {
-                    key: API_KEY,
-                    lat: lat,
-                    lon: lon,
-                    radius: 200,
-                    includeReferences: false
-                },
-                cache: true,
-                timeout: httpTimeout
-            })
-            .success(function(data, status, header, config) {
-                routes = data.data.routes;
-            })
-            .error(function(data, status, header, config) {
-                $log.debug('error');
-            });
-
-        responsePromise.then(function() {
-            deferred.resolve(routes);
-        });
-
-        return deferred.promise;
-    };
-
-
+        
         /**
          * get stops near coordinates
          * @param lat
          * @param lon
-         * @returns {*}
+         * @returns {array<Stop>}
          */
     var getStops = function(lat, lon) {
         var deferred = $q.defer();
-        var stops = {};
+        var stops = [];
 
-        var responsePromise = $http.jsonp(API_END_POINT + "api/where/stops-for-location.json?callback=JSON_CALLBACK", {
+        var responsePromise = $http.get(API_END_POINT + "stops", {
                 params: {
-                    key: API_KEY,
+                    //key: API_KEY,
                     lat: lat,
                     lon: lon,
-                    radius: 200
+                    r: 200
                 },
                 cache: true,
                 timeout: httpTimeout
             })
             .success(function(data, status, header, config) {
-                stops = data.data.stops;
+                
+                angular.forEach(data.stops, function (v){
+                    
+                    var thisStop = {};
+                    thisStop.lat = v.geometry.coordinates[1];
+                    thisStop.lon = v.geometry.coordinates[0];
+                    thisStop.id = v.onestop_id;
+                    thisStop.name = v.name;
+                    
+                    stops.push(thisStop);
+                });
+                
             })
             .error(function(data, status, header, config) {
                 $log.debug('error');
@@ -95,7 +79,6 @@ angular.module('atstop.geolocation.service', ['ionic', 'configuration'])
     };
 
     return {
-        getRoutes: getRoutes,
         getStops: getStops
     };
 });

@@ -21,14 +21,14 @@
 angular.module('atstop', [
  'atstop.about.controller','atstop.atstop.controller',
  'atstop.favorites.controller', 'atstop.gohome.controller',
-  'atstop.map.controller',  'atstop.nearby.controller',
- 'atstop.route.controller', 'atstop.search.controller', 
+   'atstop.nearby.controller',
+  'atstop.search.controller', 
  'atstop.atstop.service','atstop.datetime.service',
- 'atstop.favorites.service', 'atstop.geolocation.service', 'atstop.route.service',
-  'atstop.search.service', 'atstop.searchHistory.service', 'atstop.vehicleMonitoring.service',
- 'atstop.services', 'atstop.directives', 'leaflet-directive','ionic',
-    'ngCordova', 'angular-cache', 'angular-inview', 'timer', 'angular-svg-round-progress', 'ngIOS9UIWebViewPatch',
-    'debounce'])
+ 'atstop.favorites.service', 'atstop.geolocation.service', 
+  'atstop.search.service', 'atstop.searchHistory.service', 
+  'atstop.directives', 'leaflet-directive','ionic',
+    'ngCordova', 'angular-cache', 'angular-inview', 'timer'  
+    ])
 
 // global timeout variable for HTTP requests
 .value('httpTimeout', 10000)
@@ -159,26 +159,6 @@ angular.module('atstop', [
         }
     })
 
-    .state('tab.route', {
-        url: '/route/:routeId/:routeName',
-        views: {
-            'tab-home': {
-                templateUrl: 'templates/route.html',
-                controller: 'RouteCtrl'
-            }
-        }
-    })
-
-    .state('tab.route-favorites', {
-        url: '/route-favorites/:routeId/:routeName',
-        views: {
-            'tab-favorites': {
-                templateUrl: 'templates/route.html',
-                controller: 'RouteCtrl'
-            }
-        }
-    })
-
     .state('tab.geolocation', {
         url: '/geolocation/:latitude/:longitude/:address',
         cache: false,
@@ -197,17 +177,6 @@ angular.module('atstop', [
             'tab-home': {
                 templateUrl: 'templates/atstop.html',
                 controller: 'AtStopCtrl'
-            }
-        }
-    })
-
-    .state('tab.map', {
-        url: '/map/:routeId/:routeName/:stopId',
-        cache: false,
-        views: {
-            'tab-home': {
-                templateUrl: 'templates/map.html',
-                controller: 'MapCtrl'
             }
         }
     })
@@ -233,16 +202,6 @@ angular.module('atstop', [
         }
     })
 
-    .state('tab.atstop-favorites', {
-        url: '/atstop-favorites/:stopId/:stopName',
-        cache: false,
-        views: {
-            'tab-favorites': {
-                templateUrl: 'templates/atstop.html',
-                controller: 'AtStopCtrl'
-            }
-        }
-    })
 
     .state('tab.map-favorites', {
         url: '/map-favorites/:routeId/:routeName/:stopId',
@@ -262,17 +221,6 @@ angular.module('atstop', [
             'tab-nearby-stops-and-routes': {
                 templateUrl: 'templates/tab-nearby-stops-and-routes.html',
                 controller: 'NearbyStopsAndRoutesCtrl'
-            }
-        }
-    })
-
-    .state('tab.atstop-gps', {
-        url: '/atstop-gps/:stopId/:stopName',
-        cache: false,
-        views: {
-            'tab-nearby-stops-and-routes': {
-                templateUrl: 'templates/atstop.html',
-                controller: 'AtStopCtrl'
             }
         }
     })

@@ -53,16 +53,36 @@ angular.module('atstop.datetime.service', ['ionic', 'configuration'])
          */
         function getRemainingTime(referenceTime) {
             var now = moment().utc();
-            var time = moment(referenceTime) - now;
+            var time;
+            	// fixed in accordance with https://github.com/moment/moment/issues/1407
+                if (referenceTime.length < 8){
+                    time = moment(referenceTime) - now;
+                }
+                else{
+                    time = moment(referenceTime, 'HH:mm:ss') - now;
+                }
             if (time < 0 ){
                 time = 0;
             }
             return time;
         }
+        
+        function getDate(){
+            return moment().format('YYYY-MM-DD');
+        }
+        
+        function getNextHalfHour(){
+            hhstart = moment().format('HH:mm');
+            hhend = moment().add(30,'m').format('HH:mm');
+            hh = hhstart + ',' + hhend;
+            return hh;
+        }
 
         return {
             duration: duration,
-            getRemainingTime: getRemainingTime
+            getRemainingTime: getRemainingTime,
+            getDate: getDate,
+            getNextHalfHour: getNextHalfHour 
         };
     }
 ]);

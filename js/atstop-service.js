@@ -22,10 +22,9 @@ angular.module('atstop.atstop.service', ['ionic', 'configuration'])
 
 /**
  * Service for information about a particular stop
- * In this current incarnation, it is tailored to SIRI StopMonitoring, version 2
  * It is possible to refactor this to use another realtime API spec by changing parameters, URL, and responsePromise
  */
-.factory('AtStopService', function($log, $q, $http, $filter, httpTimeout, CacheFactory, datetimeService, API_END_POINT, API_KEY) {
+.factory('AtStopService', function($log, $q, $http, $filter, httpTimeout, CacheFactory, datetimeService, API_END_POINT) {
 
     if (!CacheFactory.get('atStopCache')) {
         CacheFactory('atStopCache', {
@@ -60,43 +59,22 @@ angular.module('atstop.atstop.service', ['ionic', 'configuration'])
             stopId: stop
         };
 
-        //for supporting queries of a single line (route) from the StopMonitoring API
-        //TODO: abstract OperatorRef to config, possibly detailLevel as well
         var getParams = {
-            key: API_KEY,
-            OperatorRef: "MTA",
-            MonitoringRef: stop,
-            StopMonitoringDetailLevel: "basic",
-            version: 2
+            //http://transit.land/api/v1/schedule_stop_pairs?origin_onestop_id=s-9q9nu1sk25-macarthurblvd~8658
+            //&date=2016-04-03&origin_departure_between=12:00,12:30
+            
+            //key: API_KEY,
+            date : datetimeService.getDate(),
+            origin_departure_between: datetimeService.getNextHalfHour(),
+            origin_onestop_id: stop,
+            active: 'true'
         };
         if (params.hasOwnProperty('line')) {
             getParams.LineRef = params.line;
         }
 
-        /**
-         * inspect response for the presence of layovers and change the text to represent that
-         * for another API this might not be necessary
-         * @param results
-         */
-        var handleLayovers = function(results) {
-            angular.forEach(results['arriving'], function(val, key) {
-                //updates distances to an array of strings so that multi-line entries come out cleaner.
-                angular.forEach(val['distances'], function(v, k) {
-                    if (v['progress'] === 'prevTrip') {
-                        v['distance'] = [v['distance'], "+ Scheduled Layover At Terminal"];
-                    } else if (v['progress'] === 'layover,prevTrip') {
-                        v['distance'] = [v['distance'], "At terminal. "];
-                        if (!$filter('isUndefinedOrEmpty')(v['departsTerminal'])) {
-                            v['distance'].push("Scheduled to depart at " + $filter('date')(v['departsTerminal'], 'shortTime'));
-                        }
-                    } else {
-                        v['distance'] = [v['distance']];
-                    }
-                });
-
-            });
-
-        };
+     
+  
 
         /**
          * calculate time to arrival from clock times
@@ -104,40 +82,37 @@ angular.module('atstop.atstop.service', ['ionic', 'configuration'])
          */
         var updateArrivalTimes = function(results) {
             angular.forEach(results, function(val, key) {
-                angular.forEach(val['distances'], function(v, k) {
+                 angular.forEach(val['distances'], function(v, k) {
                     v.arrivingIn = datetimeService.getRemainingTime(v.expectedArrivalTime);
-                });
+                 });
             });
         };
 
         /**
          * This is the meat of the return from this Service
          */
-        var responsePromise = $http.jsonp(API_END_POINT + "api/siri/stop-monitoring.json?callback=JSON_CALLBACK", {
+        var responsePromise = $http.get(API_END_POINT + "schedule_stop_pairs", {
                 params: getParams,
                 timeout: httpTimeout,
                 cache: CacheFactory.get('atStopCache')
             })
             .success(function(data, status, header, config) {
-                buses.responseTimestamp = data.Siri.ServiceDelivery.ResponseTimestamp;
-                if (data.Siri.ServiceDelivery.StopMonitoringDelivery[0].MonitoredStopVisit.length > 0) {
+                buses.responseTimestamp = moment();
+
+                if (data.schedule_stop_pairs.length > 0) {
                     var tmp = [];
                     var grouped_tmp = [];
                     var grouped = {};
 
-                    angular.forEach(data.Siri.ServiceDelivery.StopMonitoringDelivery[0].MonitoredStopVisit, function(value, key) {
-                        // SIRI V2 API JSON returns destination in an array :( Bug is filed.
-                        var destination = value.MonitoredVehicleJourney.DestinationName;
-                        var safeDestination = Array.isArray(destination) ? destination[0] : destination;
-
+                    angular.forEach(data.schedule_stop_pairs, function(value, key) {
+                        
                         tmp.push({
-                            routeId: value.MonitoredVehicleJourney.LineRef,
-                            name: value.MonitoredVehicleJourney.PublishedLineName,
-                            distance: value.MonitoredVehicleJourney.MonitoredCall.ArrivalProximityText,
-                            destination: safeDestination,
-                            progress: value.MonitoredVehicleJourney.ProgressStatus,
-                            departsTerminal: value.MonitoredVehicleJourney.OriginAimedDepartureTime,
-                            expectedArrivalTime: value.MonitoredVehicleJourney.MonitoredCall.ExpectedArrivalTime
+                            routeId: value.route_onestop_id,
+                            name: value.trip_headsign.split(" ")[0],
+                            distance: '',
+                            destination: value.trip_headsign,
+                            progress: 'normalProgress',
+                            expectedArrivalTime: value.origin_arrival_time
                         });
                     });
 
@@ -153,7 +128,6 @@ angular.module('atstop.atstop.service', ['ionic', 'configuration'])
                     });
                     buses.arriving = grouped;
 
-                    handleLayovers(buses);
                     updateArrivalTimes(buses.arriving);
 
 
@@ -161,18 +135,6 @@ angular.module('atstop.atstop.service', ['ionic', 'configuration'])
                     // TODO: check for sched svc and return something else
                 }
 
-                if (data.Siri.ServiceDelivery.SituationExchangeDelivery.length > 0) {
-                    var alerts = [];
-                    angular.forEach(data.Siri.ServiceDelivery.SituationExchangeDelivery[0].Situations, function(val, key) {
-                        angular.forEach(val, function(alert, k) {
-                            description = alert.Description;
-                            var safeDescription = $filter('alertsFilter')(description);
-
-                            alerts.push(safeDescription);
-                        });
-                    });
-                    buses.alerts = alerts;
-                }
             })
             .error(function(data, status, header, config) {
                 $log.debug('error');

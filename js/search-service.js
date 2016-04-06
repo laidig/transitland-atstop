@@ -2,25 +2,34 @@
  * Created by tonylaidig on 12/10/15.
  */
 angular.module('atstop.search.service', ['ionic', 'configuration'])
-.factory('SearchService', function($log, $q, $http, httpTimeout, API_END_POINT, API_KEY) {
+.factory('SearchService', function($log, $q, $http, httpTimeout, SEARCH_END_POINT, SEARCH_API_KEY) {
     /**
      * Autocomplete
      * @param searchKey text entered in
-     * @returns {*} array of results
+     * @returns {Array<String>} array of results
      */
+    
+    
     var autocomplete = function(searchKey) {
         var deferred = $q.defer();
         var matches = [];
 
-        var responsePromise = $http.jsonp(API_END_POINT + "api/autocomplete?callback=JSON_CALLBACK", {
+        var responsePromise = $http.get(SEARCH_END_POINT + "autocomplete", {
                 params: {
-                    term: searchKey
+                    api_key: SEARCH_API_KEY,
+                    text: searchKey
                 },
                 cache: true,
                 timeout: httpTimeout
             })
-            .success(function(data, status, header, config) {
-                matches = data;
+            .success(function(results, status, header, config) {
+                // build array of strings from data
+                var resultArray = [];
+                angular.forEach(results.features, function(val){
+                    resultArray.push(val.properties.name);
+                });
+                matches = resultArray;
+                
             })
             .error(function(data, status, header, config) {
                 $log.debug('error');
@@ -41,82 +50,24 @@ angular.module('atstop.search.service', ['ionic', 'configuration'])
         var deferred = $q.defer();
         var matches = {};
 
-        var responsePromise = $http.jsonp(API_END_POINT + "api/search?callback=JSON_CALLBACK", {
+        var responsePromise = $http.get(SEARCH_END_POINT + "search", {
                 params: {
-                    q: term
+                    api_key: SEARCH_API_KEY,
+                    text: term
                 },
                 cache: true,
                 timeout: httpTimeout
             })
             .success(function(data, status, header, config) {
-                if (data.searchResults.empty === false && data.searchResults.matches.length > 0) {
-                    var matchesData = data.searchResults.matches[0];
-                    switch (data.searchResults.resultType) {
-                        case "RouteResult":
-                            matches = {
-                                type: "RouteResult",
-                                shortName: matchesData.shortName,
-                                longName: matchesData.longName,
-                                id: matchesData.id,
-                                description: matchesData.description,
-                                directions: {}
-                            };
-                            //might be able to simplify this with an angular.sort on what is returned.
-                            if (matchesData.directions[0]) {
-                                if (matchesData.directions[0].directionId == "0") {
-                                    matches.directions[0] = {
-                                        destination: matchesData.directions[0].destination,
-                                        directionId: matchesData.directions[0].directionId,
-                                        hasUpcomingScheduledService: matchesData.directions[0].hasUpcomingScheduledService
-                                    };
-                                }
-
-                                if (matchesData.directions[0].directionId == "1") {
-                                    matches.directions[1] = {
-                                        destination: matchesData.directions[0].destination,
-                                        directionId: matchesData.directions[0].directionId,
-                                        hasUpcomingScheduledService: matchesData.directions[0].hasUpcomingScheduledService
-                                    };
-                                }
-                            }
-
-                            if (matchesData.directions[1]) {
-
-                                if (matchesData.directions[1].directionId == "0") {
-                                    matches.directions[0] = {
-                                        destination: matchesData.directions[1].destination,
-                                        directionId: matchesData.directions[1].directionId,
-                                        hasUpcomingScheduledService: matchesData.directions[1].hasUpcomingScheduledService
-                                    };
-                                }
-
-                                if (matchesData.directions[1].directionId == "1") {
-                                    matches.directions[1] = {
-                                        destination: matchesData.directions[1].destination,
-                                        directionId: matchesData.directions[1].directionId,
-                                        hasUpcomingScheduledService: matchesData.directions[1].hasUpcomingScheduledService
-                                    };
-                                }
-                            }
-                            break;
-                        case "StopResult":
-                            matches = {
-                                type: "StopResult",
-                                name: matchesData.name,
-                                id: matchesData.id
-                            };
-                            break;
-                        case "GeocodeResult":
+                // Lazy 
+                if (data.features.length > 0) {
+                    matchesData = data.features[0];
                             matches = {
                                 type: "GeocodeResult",
-                                formattedAddress: matchesData.formattedAddress,
-                                latitude: matchesData.latitude,
-                                longitude: matchesData.longitude
+                                formattedAddress: matchesData.properties.label,
+                                latitude: matchesData.geometry.coordinates[1],
+                                longitude: matchesData.geometry.coordinates[0]
                             };
-                            break;
-                        default:
-                            $log.debug("undefined type");
-                    }
                 }
             })
             .error(function(data, status, header, config) {
@@ -134,4 +85,4 @@ angular.module('atstop.search.service', ['ionic', 'configuration'])
         autocomplete: autocomplete,
         search: search
     };
-})
+});
