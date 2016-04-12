@@ -82,15 +82,15 @@ angular.module('atstop', [
     $rootScope.$on('requestRejection', function(obj, data) {
         $ionicLoading.hide();
 
-        if (data.config.url.indexOf("autocomplete") == -1) {
-            var popup = $ionicPopup.alert({
-                title: "Error",
-                content: "Something went wrong. Please check your internet connection."
-            });
-            $timeout(function() {
-                popup.close();
-            }, 2000);
-        }
+        // if (data.config.url.indexOf("autocomplete") == -1) {
+        //     var popup = $ionicPopup.alert({
+        //         title: "Error",
+        //         content: "Something went wrong. Please check your internet connection."
+        //     });
+        //     $timeout(function() {
+        //         popup.close();
+        //     }, 2000);
+        // }
 
     });
 })

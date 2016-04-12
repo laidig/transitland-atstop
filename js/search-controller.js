@@ -19,7 +19,7 @@ angular.module('atstop.search.controller', ['configuration', 'filters'])
             "notifications": '',
           
             exampleIntersections: [
-                "Transamerica Pyramid"
+               "Estacion de Autobuses Poniente", "Transamerica Pyramid", "Roma Termini"
             ],
             "searches": [],
             "showSearches": true,

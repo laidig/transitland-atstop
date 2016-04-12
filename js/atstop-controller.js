@@ -41,7 +41,7 @@ angular.module('atstop.atstop.controller', ['configuration', 'filters'])
                     $scope.data.notifications = "";
                 } else {
                     $scope.data.results = "";
-                    $scope.data.notifications = "We are not tracking any buses to this stop at this time. Check back later for an update.";
+                    $scope.data.notifications = "We do not list any trips departing soon.";
                 }
 
                 if (results.alerts.length > 0) {

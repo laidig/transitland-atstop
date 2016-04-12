@@ -24,11 +24,11 @@ angular.module('atstop.atstop.service', ['ionic', 'configuration'])
  * Service for information about a particular stop
  * It is possible to refactor this to use another realtime API spec by changing parameters, URL, and responsePromise
  */
-.factory('AtStopService', function($log, $q, $http, $filter, httpTimeout, CacheFactory, datetimeService, API_END_POINT) {
+.factory('AtStopService', function($log, $q, $http, $filter, httpTimeout, CacheFactory, datetimeService, API_END_POINT, TRANSITLAND_KEY) {
 
     if (!CacheFactory.get('atStopCache')) {
         CacheFactory('atStopCache', {
-            maxAge: 10000, // Items added to this cache expire after 10s
+            maxAge: 90000, // Items added to this cache expire after 90s
             cacheFlushInterval: 60 * 60 * 1000, // This cache will clear itself every hour
             deleteOnExpire: 'aggressive' // Items will be deleted from this cache when they expire
         });
@@ -63,7 +63,7 @@ angular.module('atstop.atstop.service', ['ionic', 'configuration'])
             //http://transit.land/api/v1/schedule_stop_pairs?origin_onestop_id=s-9q9nu1sk25-macarthurblvd~8658
             //&date=2016-04-03&origin_departure_between=12:00,12:30
             
-            //key: API_KEY,
+            api_key: TRANSITLAND_KEY,
             date : datetimeService.getDate(),
             origin_departure_between: datetimeService.getNextHalfHour(),
             origin_onestop_id: stop,
@@ -86,6 +86,7 @@ angular.module('atstop.atstop.service', ['ionic', 'configuration'])
                     v.arrivingIn = datetimeService.getRemainingTime(v.expectedArrivalTime);
                  });
             });
+            
         };
 
         /**
@@ -97,7 +98,7 @@ angular.module('atstop.atstop.service', ['ionic', 'configuration'])
                 cache: CacheFactory.get('atStopCache')
             })
             .success(function(data, status, header, config) {
-                buses.responseTimestamp = moment();
+                buses.responseTimestamp = moment().format();
 
                 if (data.schedule_stop_pairs.length > 0) {
                     var tmp = [];
@@ -106,16 +107,21 @@ angular.module('atstop.atstop.service', ['ionic', 'configuration'])
 
                     angular.forEach(data.schedule_stop_pairs, function(value, key) {
                         
+                        var routeId = value.route_onestop_id;
+                        var routeComponentArray = routeId.split("-");
+                        var routeName = routeComponentArray[routeComponentArray.length -1].toUpperCase();
+                        
                         tmp.push({
-                            routeId: value.route_onestop_id,
-                            name: value.trip_headsign.split(" ")[0],
+                            routeId: routeId,
+                            name: routeName,
                             distance: '',
                             destination: value.trip_headsign,
                             progress: 'normalProgress',
                             expectedArrivalTime: value.origin_arrival_time
                         });
                     });
-
+                    
+                    
                     grouped_tmp = _.groupBy(tmp, "routeId");
                     angular.forEach(grouped_tmp, function(val, key) {
                         var tmp = _.groupBy(val, "name");

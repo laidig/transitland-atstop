@@ -1,6 +1,6 @@
 # At Stop #
 
-A hybrid mobile app that provides information about when the next bus will arrive at your stop. The app uses free [MTA Bus Time Developer API](http://bustime.mta.info/wiki/Developers/Index)'s to get the real-time location of the buses serving a particular stop. The app is built on top of [Ionic Framework](http://ionicframework.com/).
+A hybrid mobile app that provides information about when the next bus will arrive at your stop. The app uses the [Transitland](http://transit.land) and Mapzen Search APIs to get the scheduled arrival of the transit service serving a particular stop. The app is built on top of [Ionic Framework](http://ionicframework.com/).
 
 Comments/contributions are welcome.
 
@@ -9,7 +9,7 @@ Comments/contributions are welcome.
 * install [NodeJS](https://nodejs.org/en/) and the [ionic CLI] (http://ionicframework.com/getting-started/)
 
 Optionally, run
-* wget -O - https://raw.githubusercontent.com/camsys/onebusaway-nyc-atstop/master/setup.sh | bash
+* wget -O - https://raw.githubusercontent.com/laidig/transitland-atstop/master/setup.sh | bash
 to fire off the commands below. 
 
 * (Wait before cloning this repo)
@@ -25,9 +25,9 @@ to fire off the commands below.
   * `mv js/config.tmpl.js  js/config.js`
   * `npm install` to grab dependencies defined in package.json.
   * `bower install` to grab dependencies defined in bower.json (yes, we know).
-  * Get a MTA Bus Time Developer API key. Go [here](http://spreadsheets.google.com/viewform?hl=en&formkey=dG9kcGIxRFpSS0NhQWM4UjA0V0VkNGc6MQ#gid=0) to request one.
-  * Insert your key into the `API_KEY` field of `config.js`.
-  * Set the API end point via the `API_END_POINT` constant in the same file (e.g. `http://bustime.mta.info/`)
+  * Get a Mapzen Search API key. Go [here](https://mapzen.com/developers/) to request one.
+  * Insert your key(s) into the `API_KEY` field of `config.js`.
+  * Set the API end point via the `API_END_POINT` constant in the same file (e.g. `http://search.mapzen.com/v1/`)
   * run `gulp sass && gulp compress` to generate CSS from SCSS and generate the scripts.js.
 
 ### Running
@@ -36,7 +36,7 @@ to fire off the commands below.
 
 ### Testing
 
-Now, we are using [ng-describe](https://github.com/kensho/ng-describe). **Note:** `SpecRunner.html` will be deleted when all test cases are transformed to the *ngDescribe* method (For example, `www/js/filters-spec.js`).
+We are using [ng-describe](https://github.com/kensho/ng-describe). 
 
 * First, install:
   * `sudo npm install -g karma-cli`

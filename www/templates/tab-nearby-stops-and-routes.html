@@ -37,12 +37,13 @@
                         </div>
 
                         <div class="item" ng-repeat="r in item.arriving"
-                             ng-click="showRoutePolylines(r.distances[0].routeId); showCurrentStop(r.distances[0].routeId, item.id, item.lat, item.lon, item.name);">
+                             <!--ng-click="showRoutePolylines(r.distances[0].routeId); showCurrentStop(r.distances[0].routeId, item.id, item.lat, item.lon, item.name);"-->
+                        
                             <div class="stop-route stop-flex"> <strong> {{r.name}}</strong></div>
                             <div ng-repeat="i in r.distances | limitTo: 2">
                                 <div>
-                                    <div class="stop-arrival stop-flex">
-                                        {{i.destination}}<br/>
+                                    <div class="stop-arrival stop-flex" >
+                                       <span ng-if="i.destination"> {{i.destination}}<br/></span>
                                             <span ng-show="i.expectedArrivalTime" >
                                                     <strong>{{i.arrivingIn|durationView}}</strong>
                                             </span>

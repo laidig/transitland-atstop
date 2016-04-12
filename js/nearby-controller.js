@@ -67,7 +67,7 @@ angular.module('atstop.nearby.controller', ['configuration', 'filters'])
         var setReloadTimeout = function() {
             $scope.reloadTimeout = $interval(
                 function () {
-                    tick(); }, 30000
+                    tick(); }, 60000
             );
         };
         var resetReloadTimeout = function() {
@@ -135,18 +135,25 @@ angular.module('atstop.nearby.controller', ['configuration', 'filters'])
             var arrivals = {};
             var alerts = {};
             var promises = [];
+            var defer = $q.defer();
+            // index for delaying promises
+            var i = 0;
+            var delayInterval = 1000;
             angular.forEach(stopsInTimeout, function(stop) {
+                var delayMs = i * delayInterval * Math.random();
+                
                 // add the stop to the list of promises to query below, building an object along the way
                 promises.push(
+                    $timeout(function() {
+                        console.log("delay "+delayMs)}
+                        , delayMs).then(
                     AtStopService.getBuses(stop).then(function(results) {
                         if (!angular.equals({}, results.arriving)) {
                             arrivals[stop] = results.arriving;
                         }
-                        if (!angular.equals({}, results.alerts)) {
-                            alerts[stop] = results.alerts;
-                        }
-                    })
+                    }))
                 );
+                i++;
             });
             
             $q.all(promises).then(function() {

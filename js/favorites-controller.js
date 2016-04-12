@@ -33,8 +33,6 @@ angular.module('atstop.favorites.controller', ['configuration', 'filters'])
             };
 
             $scope.remove = function(id) {
-                console.log(id);
-                $log.debug(id);
                 FavoritesService.remove(id);
                 get();
             };
