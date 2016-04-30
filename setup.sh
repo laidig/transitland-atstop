@@ -7,7 +7,6 @@ git fetch --all
 git reset --hard origin/master
 rm www/img/ionic.png www/css/style.css .
 
-mv js/config.tmpl.js js/config.js
 npm install
 bower install
 gulp sass
