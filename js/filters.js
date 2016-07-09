@@ -35,7 +35,7 @@ angular.module('filters', [])
     };
 })
 /**
- * 
+ *
  */
 .filter('encodeStopName', function() {
     return function(input) {
@@ -85,7 +85,7 @@ angular.module('filters', [])
                 displayTime = minutes + " min";
             }
             else{
-                displayTime = '';
+                displayTime = 'Due';
             }
             return displayTime;
         };

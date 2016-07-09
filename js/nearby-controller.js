@@ -118,7 +118,7 @@ angular.module('atstop.nearby.controller', ['configuration', 'filters'])
                 });
                 if (!stopInArray) {
                     stopsInTimeout.push(event.inViewTarget.id);
-                    tick();
+                    ionic.throttle(tick(), 500);
                 }
             }
 
@@ -136,41 +136,25 @@ angular.module('atstop.nearby.controller', ['configuration', 'filters'])
             var alerts = {};
             var promises = [];
             var defer = $q.defer();
-            // index for delaying promises
-            var i = 0;
-            var delayInterval = 1000;
-            angular.forEach(stopsInTimeout, function(stop) {
-                var delayMs = i * delayInterval * Math.random();
-                
                 // add the stop to the list of promises to query below, building an object along the way
-                promises.push(
-                    $timeout(function() {
-                        console.log("delay "+delayMs)}
-                        , delayMs).then(
-                    AtStopService.getBuses(stop).then(function(results) {
+
+                    AtStopService.getMultipleStops(stopsInTimeout).then(function(results) {
                         if (!angular.equals({}, results.arriving)) {
-                            arrivals[stop] = results.arriving;
+                          angular.forEach($scope.data.stops, function(s) {
+                            // console.log(JSON.stringify(s, null, " "));
+                            // console.log(JSON.stringify(arrivals.stops[s.id], null, " "));
+                            s.arriving = results.stops[s.id];
+                            s.loaded = true;
+                            s.showAlerts = false;
+
+                          });
                         }
-                    }))
-                );
-                i++;
-            });
-            
-            $q.all(promises).then(function() {
-                //loop through stops adding arrival info if there is some
-                //There is probably a better way to do this, I would like to limit piecemeal updates to $scope
-                angular.forEach($scope.data.stops, function(s) {
-                    s.arriving = arrivals[s.id];
-                    s.alerts = alerts[s.id];
-                    s.loaded = true;
-                    s.showAlerts = false;
-                });
-            });
+                    });
             //avoid apply() if it is already active.
             if (!$scope.$$phase) {
                 $scope.$apply();
             }
-        };
+        }
 
         /**
          * Returns nearby stops from the GeolocationService
@@ -180,7 +164,7 @@ angular.module('atstop.nearby.controller', ['configuration', 'filters'])
          */
         var getNearbyStopsAndRoutes = function(lat, lon, showCurrLocation) {
             if (showCurrLocation === undefined) {
-                showCurrLocation = true; 
+                showCurrLocation = true;
             }
             GeolocationService.getStops(lat, lon).then(function(results) {
                 if (!angular.isUndefined(results) && results !== null && results.length > 0) {
@@ -321,7 +305,7 @@ angular.module('atstop.nearby.controller', ['configuration', 'filters'])
                      // zoom to default if user is far out.
                     var newZoom = (currentZoom <= defaultZoom || angular.isUndefined(currentZoom)) ? defaultZoom : currentZoom;
 
-                    // but don't refocus if user is zoomed too far in. 
+                    // but don't refocus if user is zoomed too far in.
                     if (newZoom < 17){
                         map.setView($scope.markers['s0'], newZoom, {
                             animate: true
@@ -453,7 +437,7 @@ angular.module('atstop.nearby.controller', ['configuration', 'filters'])
         /**
         * returns the current zoom via a promise
         * First, tries to get Leaflet zoom level
-        * else, revert to default zoom 
+        * else, revert to default zoom
         */
         var getCurrentZoom = function(args) {
 
@@ -570,7 +554,7 @@ angular.module('atstop.nearby.controller', ['configuration', 'filters'])
                 $interval.cancel($scope.reloadTimeout);
             }
         });
-        
+
         var getDistanceInM = function(lat1, lon1, lat2, lon2) {
             var R = 6371;
             var dLat = deg2rad(lat2 - lat1);

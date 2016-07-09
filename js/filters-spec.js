@@ -18,7 +18,7 @@ ngDescribe({
   tests: function(deps) {
     it('should not show  times <1 min', function() {
       var durationView = deps.$filter('durationView');
-      expect(durationView(0)).toBe('');
+      expect(durationView(0)).toBe('Due');
     });
 
     it('should show a time of 10 min', function() {

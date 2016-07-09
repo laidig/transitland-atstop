@@ -19,7 +19,7 @@ var paths = {
   js: ['./js/*.js']
 };
 
-gulp.task('default', ['sass', 'compress']);
+gulp.task('default', ['watch','sass', 'compress']);
 
 gulp.task('sass', function(done) {
   gulp.src('./scss/ionic.app.scss')
@@ -30,7 +30,6 @@ gulp.task('sass', function(done) {
     //         html: ['./www/**/*.html']
     //     }))
     .pipe(cleanCSS({
-      compatibility: 'ie8',
       keepSpecialComments: 0
     }))
     .pipe(rename({ extname: '.min.css' }))
@@ -59,8 +58,8 @@ gulp.task('compress', function() {
 			add: true,
 			single_quotes: true
 		}))
-		.pipe(uglify())
-        .pipe(concat('scripts.js'))
+		/*.pipe(uglify())*/
+    .pipe(concat('scripts.js'))
 		.pipe(gulp.dest('www/js'))
 });
 
